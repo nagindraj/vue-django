@@ -1,0 +1,50 @@
+FROM centos:latest
+
+MAINTAINER demo
+
+
+ENV PYENV_ROOT="/.pyenv" \
+    PATH="/.pyenv/bin:/.pyenv/shims:$PATH"
+
+RUN yum update -y && \
+    yum install -y git ca-certificates curl patch gcc \
+    glibc \
+    glibc-common \
+    gd \
+    gd-devel \
+    zlib-devel \
+    bzip2 \
+    bzip2-devel \
+    readline-devel \
+    sqlite \
+    sqlite-devel \
+    openssl-devel \
+    xz \
+    xz-devel \
+    libffi-devel && \
+    curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+RUN yum update -y && \
+    yum install -y \
+        make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
+        libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev \
+        libxml2-dev libxmlsec1-dev libffi-dev postgresql-dev\
+        ca-certificates
+
+RUN yum update -y && \
+    yum groupinstall -y "Development Tools"        
+
+# RUN git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv      
+
+# RUN echo 'eval "$(pyenv virtualenv-init -)"' >> /root/.bash_profile
+# RUN . /root/.bash_profile
+
+ONBUILD RUN pyenv update && \
+            xargs -P 4 -n 1 pyenv install 3.5.2 && \
+            pyenv virtualenv 3.5.2 productionready \
+
+ONBUILD RUN mkdir /backend  
+ONBUILD WORKDIR /backend
+ONBUILD COPY ./ /backend/ 
+ONBUILD RUN pyenv local productionready && \
+        pyenv rehash               

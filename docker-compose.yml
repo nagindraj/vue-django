@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  proxy:
+    image: nginx:custom
+
+    networks:
+        - frontend
+    ports:
+        - "1871:1871" 
+    depends_on:
+      - web   
+
+  frontend: 
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+        - frontend
+    ports:
+        - "8000:8000" 
+    depends_on:
+      - web            
+
+  db:
+    image: postgres
+
+    ports:
+      - "5432:5432"
+    networks:
+      - backend  
+
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile-python
+
+
+    command: python manage.py runserver 0.0.0.0:8000
+    
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db  
+    networks:
+      - backend
+      - frontend  
+
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge      
